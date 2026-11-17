@@ -2,10 +2,122 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Surfaces & Backgrounds (Light mode) */
+  --bg-canvas: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-subtle: #f1f5f9;
+  --bg-muted: #e2e8f0;
+
+  /* Borders & Dividers */
+  --border-hairline: #e2e8f0;
+  --border-subtle: #cbd5e1;
+  --border-strong: #94a3b8;
+
+  /* Typography */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-inverse: #ffffff;
+
+  /* Single Brand Accent - Deep Clinical Teal */
+  --accent-primary: #0d9488;
+  --accent-hover: #0f766e;
+  --accent-subtle: #f0fdfa;
+  --accent-border: #99f6e4;
+  --accent-contrast: #ffffff;
+
+  /* Semantic Status Tokens (Used strictly for verification status) */
+  --status-pass-bg: #ecfdf5;
+  --status-pass-border: #a7f3d0;
+  --status-pass-text: #065f46;
+  --status-pass-dot: #10b981;
+
+  --status-review-bg: #fffbeb;
+  --status-review-border: #fde68a;
+  --status-review-text: #92400e;
+  --status-review-dot: #f59e0b;
+
+  --status-critical-bg: #fef2f2;
+  --status-critical-border: #fecaca;
+  --status-critical-text: #991b1b;
+  --status-critical-dot: #ef4444;
+
+  --ring-focus: rgba(13, 148, 136, 0.4);
+}
+
+.dark {
+  /* Surfaces & Backgrounds (Dark mode) */
+  --bg-canvas: #090d16;
+  --bg-surface: #111827;
+  --bg-subtle: #1e293b;
+  --bg-muted: #334155;
+
+  /* Borders & Dividers */
+  --border-hairline: #1f2937;
+  --border-subtle: #374151;
+  --border-strong: #4b5563;
+
+  /* Typography */
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-inverse: #090d16;
+
+  /* Accent (Dark mode) */
+  --accent-primary: #14b8a6;
+  --accent-hover: #2dd4bf;
+  --accent-subtle: #042f2e;
+  --accent-border: #115e59;
+  --accent-contrast: #090d16;
+
+  /* Semantic Status Tokens */
+  --status-pass-bg: #064e3b;
+  --status-pass-border: #047857;
+  --status-pass-text: #6ee7b7;
+  --status-pass-dot: #34d399;
+
+  --status-review-bg: #451a03;
+  --status-review-border: #78350f;
+  --status-review-text: #fcd34d;
+  --status-review-dot: #fbbf24;
+
+  --status-critical-bg: #450a0a;
+  --status-critical-border: #7f1d1d;
+  --status-critical-text: #fca5a5;
+  --status-critical-dot: #f87171;
+
+  --ring-focus: rgba(20, 184, 166, 0.4);
+}
+
 @layer base {
-  body {
-    @apply bg-slate-50 text-slate-900 antialiased font-sans selection:bg-blue-100 selection:text-blue-900;
+  * {
+    border-color: var(--border-hairline);
   }
+
+  body {
+    background-color: var(--bg-canvas);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.01em;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+
+  /* Monospace figures and codes */
+  code, kbd, samp, pre, .font-mono {
+    font-feature-settings: "tnum" 1, "zero" 1;
+  }
+}
+
+/* Tabular numbers utility */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
 
 /* Crisp Enterprise Scrollbars */
@@ -14,14 +126,24 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--bg-canvas);
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+  background: var(--border-subtle);
+  border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--border-strong);
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Print Styles for Regulatory Submission Packets */

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Barcode, CheckCircle2, XCircle, Calculator } from 'lucide-react';
 import { LabelArtwork } from '../../types';
-import { parseGS1UDI, validateGTIN } from '../../utils/gs1Validator';
+import { parseGS1UDI, validateGTIN, validateMandatoryLabelSchema } from '../../utils/gs1Validator';
 import { AbbrTooltip } from '../common/AbbrTooltip';
 
 interface GS1CheckerProps {
@@ -9,44 +9,12 @@ interface GS1CheckerProps {
 }
 
 export const GS1Checker: React.FC<GS1CheckerProps> = ({ artwork }) => {
-  const fullBarcodeString = `${artwork.udiDi}${artwork.udiPi}`;
+  const fullBarcodeString = `${artwork.udiDi || ''}${artwork.udiPi || ''}`;
   const parsed = parseGS1UDI(fullBarcodeString);
-  const gtinValidation = validateGTIN(artwork.gtin);
+  const gtinValidation = validateGTIN(artwork.gtin || '');
+  const schemaReport = validateMandatoryLabelSchema(artwork);
 
-  const schemaChecks = [
-    {
-      name: 'Legal Manufacturer Name & Address',
-      passed: Boolean(artwork.manufacturerName && artwork.manufacturerAddress),
-      clause: 'EU MDR §23.2(a) & 21 CFR §801.1',
-    },
-    {
-      name: 'CE Marking with 4-Digit Notified Body (0123)',
-      passed: artwork.symbols.includes('CE_MARK'),
-      clause: 'EU MDR Annex V / CE 0123',
-    },
-    {
-      name: 'Ethylene Oxide Sterilization Symbol (STERILE EO)',
-      passed: artwork.symbols.includes('STERILE_EO'),
-      clause: 'ISO 15223-1 Ref 5.2.3',
-    },
-    {
-      name: 'Do Not Re-Use / Single Use Restriction',
-      passed: artwork.symbols.includes('SINGLE_USE'),
-      clause: 'ISO 15223-1 Ref 5.4.2',
-    },
-    {
-      name: 'Single Sterile Barrier Indicator',
-      passed: artwork.symbols.includes('STERILE_BARRIER'),
-      clause: 'ISO 15223-1 Ref 5.2.11',
-    },
-    {
-      name: 'Medical Device "MD" Harmonized Graphic',
-      passed: artwork.symbols.includes('MEDICAL_DEVICE'),
-      clause: 'ISO 15223-1 Ref 5.7.7',
-    },
-  ];
-
-  const allSchemaPassed = schemaChecks.every(c => c.passed);
+  const allSchemaPassed = schemaReport.allPassed;
 
   return (
     <div className="bg-white border border-slate-200 rounded p-4 flex flex-col h-full shadow-xs">
@@ -66,11 +34,11 @@ export const GS1Checker: React.FC<GS1CheckerProps> = ({ artwork }) => {
         </div>
 
         <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border ${
-          parsed.isValid && allSchemaPassed
+          gtinValidation.isValid && allSchemaPassed
             ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
             : 'bg-rose-50 text-rose-800 border-rose-300'
         }`}>
-          {parsed.isValid && allSchemaPassed ? 'LAYER 1 PASSED' : 'LAYER 1 BLOCKED'}
+          {gtinValidation.isValid && allSchemaPassed ? 'LAYER 1 PASSED' : 'LAYER 1 BLOCKED'}
         </span>
       </div>
 
@@ -85,39 +53,45 @@ export const GS1Checker: React.FC<GS1CheckerProps> = ({ artwork }) => {
             <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border ${
               gtinValidation.isValid ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-rose-50 text-rose-800 border-rose-300'
             }`}>
-              {gtinValidation.isValid ? 'MATH PARITY VERIFIED' : 'CHECK DIGIT MISMATCH'}
+              {gtinValidation.isValid ? `${gtinValidation.format} PARITY VERIFIED` : 'CHECK DIGIT MISMATCH'}
             </span>
           </div>
 
           <div className="grid grid-cols-2 gap-2 text-xs font-mono">
             <div className="bg-white p-2 rounded border border-slate-200">
-              <span className="text-slate-500 block text-[10px]">INPUT GTIN-14:</span>
-              <span className="text-slate-900 font-bold">{artwork.gtin}</span>
+              <span className="text-slate-500 block text-[10px]">INPUT GTIN:</span>
+              <span className="text-slate-900 font-bold">{artwork.gtin || 'NONE'}</span>
             </div>
             <div className="bg-white p-2 rounded border border-slate-200">
-              <span className="text-slate-500 block text-[10px]">PAYLOAD (FIRST 13 DIGITS):</span>
-              <span className="text-slate-700">{artwork.gtin.slice(0, 13)}</span>
+              <span className="text-slate-500 block text-[10px]">PAYLOAD (EXCLUDING CHECK DIGIT):</span>
+              <span className="text-slate-700">{gtinValidation.payload || 'N/A'}</span>
             </div>
           </div>
 
-          {/* Step-by-Step Modulo 10 Breakdown */}
+          {/* Dynamic Modulo 10 Breakdown */}
           <div className="bg-white p-2.5 rounded border border-slate-200 text-[11px] font-mono space-y-1">
             <div className="flex items-center justify-between text-slate-600">
-              <span>Weighted Alternating Sum (x3, x1):</span>
-              <span className="text-slate-900 font-semibold">Sum = 131</span>
+              <span>Weighted Alternating Sum (x3, x1 right-to-left):</span>
+              <span className="text-slate-900 font-semibold">
+                Sum = {gtinValidation.weightedSum >= 0 ? gtinValidation.weightedSum : 'N/A'}
+              </span>
             </div>
             <div className="flex items-center justify-between text-slate-600">
-              <span>Smallest Multiple of 10:</span>
-              <span className="text-slate-900 font-semibold">140</span>
+              <span>Next Multiple of 10:</span>
+              <span className="text-slate-900 font-semibold">
+                {gtinValidation.nextMultipleOf10 >= 0 ? gtinValidation.nextMultipleOf10 : 'N/A'}
+              </span>
             </div>
             <div className="flex items-center justify-between pt-1 border-t border-slate-200">
               <span className="text-blue-800 font-semibold">Calculated Modulo-10 Check Digit:</span>
-              <span className="text-blue-800 font-bold text-sm">{gtinValidation.calculated}</span>
+              <span className="text-blue-800 font-bold text-sm">
+                {gtinValidation.calculatedCheckDigit >= 0 ? gtinValidation.calculatedCheckDigit : 'N/A'}
+              </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-600">Actual Check Digit on Artwork (14th):</span>
+              <span className="text-slate-600">Actual Check Digit on Artwork:</span>
               <span className={`font-bold text-sm ${gtinValidation.isValid ? 'text-emerald-700' : 'text-rose-700'}`}>
-                {gtinValidation.actual}
+                {gtinValidation.actualCheckDigit >= 0 ? gtinValidation.actualCheckDigit : 'N/A'}
               </span>
             </div>
           </div>
@@ -126,7 +100,10 @@ export const GS1Checker: React.FC<GS1CheckerProps> = ({ artwork }) => {
             <div className="p-2.5 rounded bg-rose-50 border border-rose-200 text-[11px] text-rose-900 flex items-start gap-2 leading-relaxed">
               <XCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
               <div>
-                <strong>CRITICAL GS1 RECALL DEFECT:</strong> The 14-digit GTIN has an invalid Modulo-10 check digit ({gtinValidation.actual} vs calculated {gtinValidation.calculated}). If scanned in a hospital operating room, point-of-care barcode verifiers will fail to decode, violating 21 CFR §801.40.
+                <strong>CRITICAL GS1 RECALL DEFECT:</strong>{' '}
+                {gtinValidation.errorMessage ||
+                  `The GTIN has an invalid Modulo-10 check digit (${gtinValidation.actualCheckDigit} vs calculated ${gtinValidation.calculatedCheckDigit}).`}
+                If scanned in a hospital operating room, point-of-care barcode verifiers will fail to decode, violating 21 CFR §801.40.
               </div>
             </div>
           )}
@@ -140,17 +117,25 @@ export const GS1Checker: React.FC<GS1CheckerProps> = ({ artwork }) => {
 
           <div className="space-y-1.5 font-mono text-[11px]">
             <div className="flex items-center justify-between p-2 rounded bg-white border border-slate-200">
-              <span className="text-blue-800 font-semibold">(01) Global Trade Item #</span>
-              <span className="text-slate-900 font-bold">{parsed.gtin || 'MISSING'}</span>
+              <span className="text-blue-800 font-semibold">(01) Global Trade Item # (GTIN)</span>
+              <span className="text-slate-900 font-bold">{parsed.gtin || artwork.gtin || 'MISSING'}</span>
             </div>
             <div className="flex items-center justify-between p-2 rounded bg-white border border-slate-200">
-              <span className="text-slate-700 font-semibold">(17) Expiration Date (YYMMDD)</span>
-              <span className="text-slate-900">{parsed.expiryDateRaw} ({parsed.expiryDateParsed})</span>
+              <span className="text-slate-700 font-semibold">(17) Expiration Date</span>
+              <span className="text-slate-900">
+                {parsed.expiryDateRaw ? `${parsed.expiryDateRaw} (${parsed.expiryDateValidation?.parsedDate})` : artwork.expDate || 'MISSING'}
+              </span>
             </div>
             <div className="flex items-center justify-between p-2 rounded bg-white border border-slate-200">
               <span className="text-slate-700 font-semibold">(10) Batch / Lot Number</span>
-              <span className="text-slate-900">{parsed.lot || artwork.lot}</span>
+              <span className="text-slate-900">{parsed.lot || artwork.lot || 'MISSING'}</span>
             </div>
+            {parsed.serialNumber && (
+              <div className="flex items-center justify-between p-2 rounded bg-white border border-slate-200">
+                <span className="text-slate-700 font-semibold">(21) Serial Number</span>
+                <span className="text-slate-900">{parsed.serialNumber}</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -158,22 +143,24 @@ export const GS1Checker: React.FC<GS1CheckerProps> = ({ artwork }) => {
         <div className="bg-slate-50 border border-slate-200 rounded p-3.5 space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-mono text-slate-600 uppercase tracking-wider font-bold">
-              MANDATORY FIELD SCHEMA CHECKS ({artwork.deviceClass})
+              MANDATORY FIELD SCHEMA CHECKS ({artwork.deviceClass || 'Class III'})
             </span>
-            <span className="text-[10px] font-mono text-slate-500">EU MDR Annex I & 21 CFR 801</span>
+            <span className="text-[10px] font-mono text-slate-500">
+              Passed {schemaReport.passedCount} / {schemaReport.totalCount} Checks
+            </span>
           </div>
 
           <div className="space-y-1">
-            {schemaChecks.map((chk, i) => (
+            {schemaReport.checks.map(chk => (
               <div
-                key={i}
+                key={chk.id}
                 className="flex items-center justify-between p-2 rounded bg-white border border-slate-200 text-[11px]"
               >
                 <div className="flex items-center gap-2">
                   {chk.passed ? (
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
                   ) : (
-                    <XCircle className="w-3.5 h-3.5 text-rose-600" />
+                    <XCircle className="w-3.5 h-3.5 text-rose-600 flex-shrink-0" />
                   )}
                   <span className={chk.passed ? 'text-slate-800' : 'text-rose-900 font-semibold'}>
                     {chk.name}

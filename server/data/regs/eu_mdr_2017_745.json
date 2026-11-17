@@ -1,0 +1,34 @@
+[
+  {
+    "id": "EU-MDR-23.2-A",
+    "source_name": "EU Medical Device Regulation (EU MDR 2017/745)",
+    "section": "Annex I, Chapter III, Section 23.2",
+    "title": "Information on the Label - General Requirements",
+    "text": "The label shall bear all of the following particulars: (a) the name or trade name of the device; (b) the details strictly necessary for a user to identify the device, the contents of the packaging and, where it is not obvious to the user, the intended purpose of the device; (c) the name, registered trade name or registered trade mark of the manufacturer and the address of its registered place of business; (d) if the manufacturer has its registered place of business outside the Union, the name of the authorised representative and address of the registered place of business of the authorised representative.",
+    "keywords": ["trade name", "manufacturer", "address", "authorised representative", "device identification"]
+  },
+  {
+    "id": "EU-MDR-23.2-Q",
+    "source_name": "EU Medical Device Regulation (EU MDR 2017/745)",
+    "section": "Annex I, Chapter III, Section 23.2(q)",
+    "title": "Sterile Packaging Indication",
+    "text": "Where the device is supplied sterile, the label shall indicate that the device is in a sterile condition and the method of sterilisation. Furthermore, an indication permitting the sterile packaging to be recognized as such shall be present on the packaging.",
+    "keywords": ["sterile", "sterilisation method", "sterile barrier", "sterile condition"]
+  },
+  {
+    "id": "EU-MDR-23.2-P",
+    "source_name": "EU Medical Device Regulation (EU MDR 2017/745)",
+    "section": "Annex I, Chapter III, Section 23.2(p)",
+    "title": "Single-Use Device Warning",
+    "text": "An indication that the device is for single use. A manufacturer's indication of single use shall be consistent across the Union. The symbol for do not re-use shall be clearly indicated.",
+    "keywords": ["single use", "do not re-use", "reusable", "patient safety"]
+  },
+  {
+    "id": "EU-MDR-27-UDI",
+    "source_name": "EU Medical Device Regulation (EU MDR 2017/745)",
+    "section": "Article 27 & Annex VI, Part C",
+    "title": "Unique Device Identification (UDI) Carrier",
+    "text": "The UDI carrier (AIDC and HRI representation) shall be on the label or on the device itself and on all higher levels of device packaging. If there are significant space constraints on the unit pack, the UDI carrier may be placed on the next higher packaging level. The HRI format shall follow standard GS1 or HIBCC identification key rules.",
+    "keywords": ["UDI", "AIDC", "HRI", "carrier", "packaging level", "GS1"]
+  }
+]

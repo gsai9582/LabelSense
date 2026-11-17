@@ -1,4 +1,4 @@
-import {
+import type {
   LabelArtwork,
   DigitalThreadNode,
   DigitalThreadEdge,
@@ -7,7 +7,7 @@ import {
   WhyTraceData,
   ValidationReport,
   DemoScenarioKey
-} from '../types';
+} from '../types/index.ts';
 
 export const BASELINE_ARTWORK: LabelArtwork = {
   sku: 'Stent-CS400',
@@ -17,7 +17,7 @@ export const BASELINE_ARTWORK: LabelArtwork = {
   sterileBarrier: 'Single Sterile Barrier System with Protective Inner Wrap',
   packagingLevel: 'Primary Pouch',
   revision: 'Rev. 4.2',
-  gtin: '00840123456789', // 14 digits. Let's ensure calculated modulo 10 matches or explain!
+  gtin: '00840123456786', // 14 digits. Calculated modulo 10 parity = 6 (verified)
   lot: 'LOT-2026B14',
   expDate: '2028-12-31', // or 281231 in UDI
   mfgDate: '2025-12-01',
@@ -30,7 +30,7 @@ export const BASELINE_ARTWORK: LabelArtwork = {
   instructions: 'See Instructions for Use for contraindications, warnings, precautions and adverse events.',
   storageTemp: '15°C - 30°C (59°F - 86°F)',
   dimensions: '3.0 mm x 18 mm',
-  udiDi: '(01)00840123456789',
+  udiDi: '(01)00840123456786',
   udiPi: '(17)281231(10)LOT-2026B14(21)SN-942819',
 };
 
@@ -351,10 +351,10 @@ export const WHY_TRACE_MAP: Record<string, WhyTraceData> = {
   'UDI_DATAMATRIX': {
     elementId: 'UDI_DATAMATRIX',
     elementName: 'GS1 2D DataMatrix with Modulo-10 Check Digit',
-    displayValue: '(01)00840123456789(17)281231(10)LOT-2026B14',
+    displayValue: '(01)00840123456786(17)281231(10)LOT-2026B14',
     sourcePlmSpec: {
       specId: 'PLM-UDI-GTIN-14-ASSIGNMENT',
-      parameter: 'GTIN-14 assigned: 00840123456789 (Company Prefix: 0084012)',
+      parameter: 'GTIN-14 assigned: 00840123456786 (Company Prefix: 0084012)',
       sourceDocument: 'GS1 Global Registry & GUDID Direct Submission Entry #991482',
       dhrVerified: true,
     },

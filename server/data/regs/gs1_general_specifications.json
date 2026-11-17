@@ -1,0 +1,18 @@
+[
+  {
+    "id": "GS1-GENSPEC-7.9.1",
+    "source_name": "GS1 General Specifications Release 24.0",
+    "section": "Section 7.9.1",
+    "title": "Check Digit Calculation - Modulo-10 Algorithm",
+    "text": "The check digit for GTIN-8, GTIN-12, GTIN-13, and GTIN-14 is calculated using the standard Modulo-10 algorithm. Starting from the right of the payload (excluding check position), digits are multiplied alternately by 3 and 1. The sum of these products is calculated, and the check digit is the smallest non-negative integer that, when added to this sum, yields a multiple of 10. If the sum is already a multiple of 10, the check digit is 0.",
+    "keywords": ["modulo 10", "check digit", "GTIN", "algorithm", "checksum", "weights 3 and 1"]
+  },
+  {
+    "id": "GS1-GENSPEC-3.4",
+    "source_name": "GS1 General Specifications Release 24.0",
+    "section": "Section 3.4 & Section 3.8",
+    "title": "Application Identifier AI (01), AI (17), AI (10), AI (21)",
+    "text": "Application Identifier (01) denotes a fixed-length 14-digit Global Trade Item Number. AI (17) denotes a fixed-length 6-digit expiration date in YYMMDD format, where day 00 indicates the last day of the stated month. AI (10) denotes a variable-length alphanumeric batch or lot number up to 20 characters, terminated by FNC1 when unbracketed. AI (21) denotes serial number.",
+    "keywords": ["AI 01", "AI 17", "AI 10", "AI 21", "FNC1", "HRI", "YYMMDD", "lot", "serial"]
+  }
+]

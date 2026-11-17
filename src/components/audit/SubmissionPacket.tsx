@@ -1,7 +1,9 @@
-import React from 'react';
-import { FileCheck, Printer, Shield } from 'lucide-react';
+import React, { useState } from 'react';
+import { FileCheck, Printer, Shield, Download, RefreshCw } from 'lucide-react';
 import { LabelArtwork, ElectronicSignature } from '../../types';
 import { AbbrTooltip } from '../common/AbbrTooltip';
+import { apiClient } from '../../utils/apiClient';
+import { Button } from '../ui/Button';
 
 interface SubmissionPacketProps {
   artwork: LabelArtwork;
@@ -14,49 +16,88 @@ export const SubmissionPacket: React.FC<SubmissionPacketProps> = ({
   signatures,
   ecoNumber = 'ECO-2026-1042',
 }) => {
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    setIsDownloadingPdf(true);
+    try {
+      const blob = await apiClient.downloadReportPdf(artwork.sku || 'DOS-2026-084');
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `LabelSense_Dossier_${artwork.sku || 'Packaging'}_${Date.now()}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.warn('PDF download fallback to print:', err);
+      window.print();
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
   const handlePrint = () => {
     window.print();
   };
 
   return (
-    <div className="bg-white border border-slate-200 rounded p-4 flex flex-col h-full shadow-xs">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex flex-col h-full shadow-sm">
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
-            <FileCheck className="w-4 h-4 text-blue-700" />
+      <div className="flex flex-wrap items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 gap-2">
+        <div className="flex items-center gap-2.5">
+          <div className="p-1.5 rounded-md bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-800">
+            <FileCheck className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-mono">
+            <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider font-mono">
               Regulatory Submission & Audit Packet Generator
             </h3>
-            <p className="text-[11px] text-slate-500">
-              One-click dossier for FDA 510(k)/PMA, <AbbrTooltip term="MDR">EU MDR</AbbrTooltip> Technical Documentation, & PMDA
+            <p className="text-2xs text-slate-500 dark:text-slate-400">
+              Assisted dossier export for FDA 510(k)/PMA, <AbbrTooltip term="MDR">EU MDR</AbbrTooltip> Technical Documentation, & PMDA
             </p>
           </div>
         </div>
 
-        <button
-          onClick={handlePrint}
-          className="px-3 py-1.5 rounded bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors"
-        >
-          <Printer className="w-3.5 h-3.5" />
-          <span>Export Submission Packet (Print / PDF)</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePrint}
+            className="text-xs"
+          >
+            <Printer className="w-3.5 h-3.5 mr-1" />
+            <span>Print View</span>
+          </Button>
+
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleDownloadPdf}
+            disabled={isDownloadingPdf}
+            className="text-xs"
+          >
+            {isDownloadingPdf ? (
+              <RefreshCw className="w-3.5 h-3.5 animate-spin mr-1" />
+            ) : (
+              <Download className="w-3.5 h-3.5 mr-1" />
+            )}
+            <span>Download PDF Dossier</span>
+          </Button>
+        </div>
       </div>
 
       {/* Structured Submission Document View */}
       <div className="mt-3 flex-1 overflow-y-auto space-y-4 pr-1 text-xs">
-        <div className="bg-slate-50 border border-slate-200 rounded p-4 space-y-4 font-mono text-[11px]">
+        <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-lg p-4 space-y-4 font-mono text-[11px]">
           {/* Certificate Banner */}
-          <div className="border-b border-slate-200 pb-3 flex items-start justify-between bg-white p-3 rounded border">
+          <div className="border-b border-slate-200 dark:border-slate-700 pb-3 flex items-start justify-between bg-white dark:bg-slate-900 p-3 rounded-md border border-slate-200 dark:border-slate-800">
             <div>
-              <div className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <Shield className="w-4 h-4 text-blue-700" />
-                LABEL COMPLIANCE VERIFICATION CERTIFICATE
+              <div className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Shield className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                LABEL COMPLIANCE VERIFICATION DOSSIER
               </div>
-              <div className="text-[10px] text-slate-500 mt-0.5">
-                <AbbrTooltip term="CSA">GAMP 5 Category 4</AbbrTooltip> Automated Validation | 21 CFR Part 11 Certified
+              <div className="text-2xs text-slate-500 dark:text-slate-400 mt-0.5">
+                <AbbrTooltip term="CSA">GAMP 5 Category 4</AbbrTooltip> Automated Validation | Designed to support 21 CFR Part 11 & EU MDR
               </div>
             </div>
             <div className="text-right">

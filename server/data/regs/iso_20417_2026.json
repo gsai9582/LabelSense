@@ -1,0 +1,18 @@
+[
+  {
+    "id": "ISO-20417-6.1",
+    "source_name": "ISO 20417:2026",
+    "section": "Clause 6.1",
+    "title": "Legibility and Contrast of Information Supplied by Manufacturer",
+    "text": "All markings, symbols, and human-readable text on labels shall be legible under standard clinical ambient illumination (500 lux) at a nominal reading distance of 30 cm. High contrast between lettering and background must be maintained, and minimum text height for critical clinical specifications (e.g. dimensions, warnings) shall not be less than 1.2 mm.",
+    "keywords": ["legibility", "contrast", "font size", "text height", "illumination", "500 lux"]
+  },
+  {
+    "id": "ISO-20417-6.4",
+    "source_name": "ISO 20417:2026",
+    "section": "Clause 6.4",
+    "title": "Decimal Points and Unit Expressions",
+    "text": "Critical dimensions, metric measurements, and concentrations shall clearly express the decimal point. Leading zeros before decimal fractions are mandatory (e.g. 0.5 mm, never .5 mm) and trailing decimal zeros without context should be avoided to prevent decimal shift misinterpretations.",
+    "keywords": ["decimal point", "leading zero", "dimensions", "units", "metric"]
+  }
+]

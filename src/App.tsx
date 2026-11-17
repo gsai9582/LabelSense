@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { Header } from './components/common/Header';
+import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './components/ui/Toast';
+import { LandingPage } from './components/landing/LandingPage';
+import { AppShell, AppViewTab } from './components/layout/AppShell';
+import { DashboardView } from './components/dashboard/DashboardView';
+import { CompareView } from './components/compare/CompareView';
+import { LoginModal } from './components/auth/LoginModal';
+
 import { MetricsBanner } from './components/common/MetricsBanner';
 import { BenchmarkModal } from './components/common/BenchmarkModal';
 import { ESignatureModal } from './components/common/ESignatureModal';
@@ -15,29 +23,37 @@ import { AuditModule } from './components/audit/AuditModule';
 import {
   DemoScenarioKey,
   LabelArtwork,
-  ElectronicSignature
+  ElectronicSignature,
 } from './types';
 import {
   BASELINE_ARTWORK,
   SCENARIO_A_ARTWORK,
   SCENARIO_B_ARTWORK,
-  SCENARIO_C_ARTWORK
+  SCENARIO_C_ARTWORK,
 } from './data/mockLabelData';
-import { INITIAL_SIGNATURES } from './utils/auditTrail';
+import {
+  AuditEvent,
+  INITIAL_AUDIT_LOGS,
+  INITIAL_SIGNATURES,
+  createChainedAuditEvent,
+} from './utils/auditTrail';
 
-export const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'sense' | 'impact' | 'author' | 'validate' | 'audit'>('sense');
+const MainAppContent: React.FC = () => {
+  const [viewMode, setViewMode] = useState<'landing' | 'app'>('landing');
+  const [currentTab, setCurrentTab] = useState<AppViewTab>('dashboard');
   const [currentScenario, setCurrentScenario] = useState<DemoScenarioKey>('SCENARIO_A');
   const [currentArtwork, setCurrentArtwork] = useState<LabelArtwork>(SCENARIO_A_ARTWORK);
 
   // Modals state
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isBenchmarkOpen, setIsBenchmarkOpen] = useState(false);
   const [isSignModalOpen, setIsSignModalOpen] = useState(false);
   const [isSystemInfoOpen, setIsSystemInfoOpen] = useState(false);
   const [inspectedWhyTraceId, setInspectedWhyTraceId] = useState<string | null>(null);
 
-  // Signatures store
+  // Signatures and Audit events store
   const [signatures, setSignatures] = useState<ElectronicSignature[]>(INITIAL_SIGNATURES);
+  const [auditEvents, setAuditEvents] = useState<AuditEvent[]>(INITIAL_AUDIT_LOGS);
 
   // Scenario Switcher handler
   const handleSelectScenario = (key: DemoScenarioKey) => {
@@ -46,71 +62,149 @@ export const App: React.FC = () => {
       setCurrentArtwork(SCENARIO_A_ARTWORK);
     } else if (key === 'SCENARIO_B') {
       setCurrentArtwork(SCENARIO_B_ARTWORK);
-      setActiveTab('validate');
+      setCurrentTab('validate');
     } else if (key === 'SCENARIO_C') {
       setCurrentArtwork(SCENARIO_C_ARTWORK);
-      setActiveTab('validate');
+      setCurrentTab('validate');
     }
   };
 
-  const handleSignComplete = (sig: ElectronicSignature) => {
-    setSignatures([sig, ...signatures]);
+  const handleLaunchApp = (initialTab: AppViewTab = 'dashboard') => {
+    setCurrentTab(initialTab);
+    setViewMode('app');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
-      {/* Sticky Enterprise Header with Breadcrumbs, Live Status & 5-Stage Stepper */}
-      <Header
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        currentScenario={currentScenario}
-        onSelectScenario={handleSelectScenario}
-        onOpenBenchmark={() => setIsBenchmarkOpen(true)}
-        onOpenSignModal={() => setIsSignModalOpen(true)}
-        onOpenSystemInfo={() => setIsSystemInfoOpen(true)}
-      />
+  const handleSignComplete = async (sig: ElectronicSignature) => {
+    setSignatures(prev => [sig, ...prev]);
 
-      {/* Main Workspace Body */}
-      <main className="flex-1 max-w-[1720px] w-full mx-auto px-4 py-3 flex flex-col">
-        {/* Compact KPI Metrics Banner */}
-        <MetricsBanner
-          currentScenario={currentScenario}
-          onOpenBenchmark={() => setIsBenchmarkOpen(true)}
+    // Append cryptographic audit event for the signature
+    const prevHash = auditEvents.length > 0 ? auditEvents[auditEvents.length - 1].currentHash : '0'.repeat(64);
+    const newEvt = await createChainedAuditEvent({
+      id: `AUD-00${auditEvents.length + 1}`,
+      eventType: 'DEMO_SIGNATURE',
+      actor: sig.userName,
+      role: sig.userRole,
+      action: 'Assistive Electronic Signature Captured',
+      details: `Meaning: ${sig.meaning}. Signature Digest: ${sig.sha256Hash}`,
+      previousHash: prevHash,
+      systemVerdict: 'PASS',
+    });
+    setAuditEvents(prev => [...prev, newEvt]);
+  };
+
+  const handleAppendAuditLog = async (action: string, details: string, verdict: 'PASS' | 'REVIEW' | 'FAIL') => {
+    const prevHash = auditEvents.length > 0 ? auditEvents[auditEvents.length - 1].currentHash : '0'.repeat(64);
+    const newEvt = await createChainedAuditEvent({
+      id: `AUD-00${auditEvents.length + 1}`,
+      eventType: 'VALIDATION_RUN',
+      actor: 'LabelSense Verification Engine',
+      role: 'Deterministic Verification System',
+      action,
+      details,
+      previousHash: prevHash,
+      systemVerdict: verdict,
+    });
+    setAuditEvents(prev => [...prev, newEvt]);
+  };
+
+  if (viewMode === 'landing') {
+    return (
+      <>
+        <LandingPage
+          onLaunchApp={handleLaunchApp}
+          onOpenLogin={() => setIsLoginOpen(true)}
         />
+        <LoginModal
+          isOpen={isLoginOpen}
+          onClose={() => setIsLoginOpen(false)}
+        />
+      </>
+    );
+  }
 
-        {/* Dynamic Workflow Tab Content */}
-        <div className="flex-1">
-          {activeTab === 'sense' && <SenseModule />}
-          {activeTab === 'impact' && (
-            <ImpactModule onNavigateToAuthor={() => setActiveTab('author')} />
-          )}
-          {activeTab === 'author' && (
-            <AuthorModule
-              artwork={currentArtwork}
-              onUpdateArtwork={setCurrentArtwork}
-              onInspectElement={elementId => setInspectedWhyTraceId(elementId)}
-            />
-          )}
-          {activeTab === 'validate' && (
-            <ValidateModule
-              baselineArtwork={BASELINE_ARTWORK}
-              currentArtwork={currentArtwork}
-              currentScenario={currentScenario}
-              onTriggerSignoff={() => setIsSignModalOpen(true)}
-              onNavigateToAudit={() => setActiveTab('audit')}
-            />
-          )}
-          {activeTab === 'audit' && (
-            <AuditModule
-              artwork={currentArtwork}
-              signatures={signatures}
-              onOpenWhyTrace={elementId => setInspectedWhyTraceId(elementId)}
-            />
-          )}
+  return (
+    <AppShell
+      currentTab={currentTab}
+      onNavigateTab={tab => setCurrentTab(tab)}
+      currentScenario={currentScenario}
+      onSelectScenario={handleSelectScenario}
+      onOpenLogin={() => setIsLoginOpen(true)}
+      onOpenSignModal={() => setIsSignModalOpen(true)}
+      onOpenBenchmark={() => setIsBenchmarkOpen(true)}
+      onOpenSystemInfo={() => setIsSystemInfoOpen(true)}
+      onReturnToLanding={() => setViewMode('landing')}
+    >
+      {/* KPI Metrics Banner for verification workspace */}
+      {currentTab !== 'dashboard' && (
+        <div className="mb-4">
+          <MetricsBanner
+            currentScenario={currentScenario}
+            onOpenBenchmark={() => setIsBenchmarkOpen(true)}
+          />
         </div>
-      </main>
+      )}
+
+      {/* Main Tab View Contents */}
+      {currentTab === 'dashboard' && (
+        <DashboardView
+          onSelectScenario={handleSelectScenario}
+          onNavigateToTab={tab => setCurrentTab(tab as AppViewTab)}
+          onOpenUpload={() => setCurrentTab('validate')}
+        />
+      )}
+
+      {currentTab === 'compare' && (
+        <CompareView
+          onTriggerSignoff={() => setIsSignModalOpen(true)}
+          onNavigateToAudit={() => setCurrentTab('audit')}
+        />
+      )}
+
+      {currentTab === 'validate' && (
+        <ValidateModule
+          baselineArtwork={BASELINE_ARTWORK}
+          currentArtwork={currentArtwork}
+          currentScenario={currentScenario}
+          onTriggerSignoff={() => setIsSignModalOpen(true)}
+          onNavigateToAudit={() => setCurrentTab('audit')}
+          onApplyUploadedArtwork={art => {
+            setCurrentArtwork(art);
+            setCurrentTab('validate');
+          }}
+          onAppendAuditLog={handleAppendAuditLog}
+        />
+      )}
+
+      {currentTab === 'audit' && (
+        <AuditModule
+          artwork={currentArtwork}
+          signatures={signatures}
+          events={auditEvents}
+          onOpenWhyTrace={elementId => setInspectedWhyTraceId(elementId)}
+        />
+      )}
+
+      {currentTab === 'sense' && <SenseModule />}
+
+      {currentTab === 'impact' && (
+        <ImpactModule onNavigateToAuthor={() => setCurrentTab('author')} />
+      )}
+
+      {currentTab === 'author' && (
+        <AuthorModule
+          artwork={currentArtwork}
+          onUpdateArtwork={setCurrentArtwork}
+          onInspectElement={elementId => setInspectedWhyTraceId(elementId)}
+        />
+      )}
 
       {/* Modals & Dialogs */}
+      <LoginModal
+        isOpen={isLoginOpen}
+        onClose={() => setIsLoginOpen(false)}
+      />
+
       <BenchmarkModal
         isOpen={isBenchmarkOpen}
         onClose={() => setIsBenchmarkOpen(false)}
@@ -133,7 +227,19 @@ export const App: React.FC = () => {
           onClose={() => setInspectedWhyTraceId(null)}
         />
       )}
-    </div>
+    </AppShell>
+  );
+};
+
+export const App: React.FC = () => {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <ToastProvider>
+          <MainAppContent />
+        </ToastProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 };
 

@@ -4,6 +4,7 @@ import { ECNSimulator } from './ECNSimulator';
 import { TraversalResults } from './TraversalResults';
 import { DigitalThreadNode, ECNScenario, ImpactAssessment } from '../../types';
 import { ECN_SCENARIOS, MOCK_IMPACT_ASSESSMENT } from '../../data/mockLabelData';
+import { Badge } from '../ui/Badge';
 
 interface ImpactModuleProps {
   onNavigateToAuthor: () => void;
@@ -30,31 +31,46 @@ export const ImpactModule: React.FC<ImpactModuleProps> = ({ onNavigateToAuthor }
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[calc(100vh-190px)] min-h-[640px]">
-      {/* Column 1: ECN Simulator (3 cols) */}
-      <div className="lg:col-span-3 h-full">
-        <ECNSimulator
-          onRunTraversal={handleRunTraversal}
-          isTraversing={isTraversing}
-          activeScenario={activeScenario}
-          setActiveScenario={setActiveScenario}
-        />
+    <div className="flex flex-col gap-3 h-[calc(100vh-190px)] min-h-[640px]">
+      {/* Honesty Disclosure Banner */}
+      <div className="p-2.5 rounded-lg bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between text-2xs">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-slate-800 dark:text-slate-200">
+            Module 2: IMPACT — Digital Thread & Knowledge Graph
+          </span>
+          <Badge variant="neutral">Demo scenario data</Badge>
+        </div>
+        <span className="text-slate-500 dark:text-slate-400">
+          Simulated ERP/PLM graph nodes demonstrating ECN change cascades
+        </span>
       </div>
 
-      {/* Column 2: Interactive Knowledge Graph Explorer (5 cols) */}
-      <div className="lg:col-span-5 h-full">
-        <KnowledgeGraph
-          selectedNode={selectedNode}
-          onSelectNode={setSelectedNode}
-        />
-      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 overflow-hidden">
+        {/* Column 1: ECN Simulator (3 cols) */}
+        <div className="lg:col-span-3 h-full">
+          <ECNSimulator
+            onRunTraversal={handleRunTraversal}
+            isTraversing={isTraversing}
+            activeScenario={activeScenario}
+            setActiveScenario={setActiveScenario}
+          />
+        </div>
 
-      {/* Column 3: Traversal Results & Auto-Drafted ECO (4 cols) */}
-      <div className="lg:col-span-4 h-full">
-        <TraversalResults
-          assessment={assessment}
-          onProceedToAuthor={onNavigateToAuthor}
-        />
+        {/* Column 2: Interactive Knowledge Graph Explorer (5 cols) */}
+        <div className="lg:col-span-5 h-full">
+          <KnowledgeGraph
+            selectedNode={selectedNode}
+            onSelectNode={setSelectedNode}
+          />
+        </div>
+
+        {/* Column 3: Traversal Results & Auto-Drafted ECO (4 cols) */}
+        <div className="lg:col-span-4 h-full">
+          <TraversalResults
+            assessment={assessment}
+            onProceedToAuthor={onNavigateToAuthor}
+          />
+        </div>
       </div>
     </div>
   );

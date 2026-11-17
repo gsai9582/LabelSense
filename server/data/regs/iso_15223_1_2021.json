@@ -1,0 +1,34 @@
+[
+  {
+    "id": "ISO-15223-5.1.1",
+    "source_name": "ISO 15223-1:2021",
+    "section": "Clause 5.1.1 (Symbol Reference 5.1.1)",
+    "title": "Manufacturer Symbol",
+    "text": "Indicates the medical device manufacturer, as defined in EU Directives/Regulations or ISO 13485. This symbol shall be accompanied by the name and the address of the manufacturer, adjacent to the factory symbol.",
+    "keywords": ["manufacturer symbol", "factory icon", "address", "ISO 13485"]
+  },
+  {
+    "id": "ISO-15223-5.2.3",
+    "source_name": "ISO 15223-1:2021",
+    "section": "Clause 5.2.3 (Symbol Reference 5.2.3)",
+    "title": "Sterilized Using Ethylene Oxide (STERILE EO)",
+    "text": "Indicates a medical device that has been sterilized using ethylene oxide gas. The symbol consists of the word 'STERILE' enclosed in a rectangular frame alongside 'EO'. Must be accompanied by sterile barrier indicators where appropriate.",
+    "keywords": ["STERILE EO", "ethylene oxide", "sterilization", "barrier"]
+  },
+  {
+    "id": "ISO-15223-5.4.2",
+    "source_name": "ISO 15223-1:2021",
+    "section": "Clause 5.4.2 (Symbol Reference 5.4.2)",
+    "title": "Do Not Re-Use / Single Use",
+    "text": "Indicates a medical device that is intended for one single use, or for use on a single patient during a single procedure. The symbol consists of the numeral '2' enclosed in a circle with a diagonal slash crossing it at 45 degrees.",
+    "keywords": ["do not re-use", "single use", "circle slash 2", "patient safety"]
+  },
+  {
+    "id": "ISO-15223-5.1.4",
+    "source_name": "ISO 15223-1:2021",
+    "section": "Clause 5.1.4 (Symbol Reference 5.1.4)",
+    "title": "Use-by Date / Expiry Symbol",
+    "text": "Indicates the date after which the medical device is not to be used. Represented by an hourglass symbol or 'USE BY'. Accompanied by the date formatted per ISO 8601 or GS1 rules.",
+    "keywords": ["use-by", "expiry", "hourglass", "shelf-life"]
+  }
+]

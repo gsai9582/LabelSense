@@ -1,0 +1,34 @@
+[
+  {
+    "id": "FDA-21CFR-801.1",
+    "source_name": "US FDA Title 21 CFR Part 801",
+    "section": "21 CFR § 801.1",
+    "title": "Medical Devices; Name and Place of Business of Manufacturer, Packer or Distributor",
+    "text": "The label of a device in package form shall specify conspicuously the name and place of business of the manufacturer, packer, or distributor. The requirement for declaration of the name of the manufacturer, packer, or distributor shall be satisfied, in the case of a corporation, only by the actual corporate name.",
+    "keywords": ["manufacturer name", "corporate address", "packer", "distributor"]
+  },
+  {
+    "id": "FDA-21CFR-801.20",
+    "source_name": "US FDA Title 21 CFR Part 801",
+    "section": "21 CFR § 801.20",
+    "title": "Label to Bear a Unique Device Identifier",
+    "text": "The label of every medical device and each device package shall bear a unique device identifier (UDI) that meets the requirements of this subpart and the requirements of part 830 of this chapter. The UDI must be presented in two forms: easily readable plain-text (human readable interpretation or HRI) and automatic identification and data capture (AIDC) technology.",
+    "keywords": ["UDI", "plain-text", "HRI", "AIDC", "barcode", "DataMatrix"]
+  },
+  {
+    "id": "FDA-21CFR-801.18",
+    "source_name": "US FDA Title 21 CFR Part 801",
+    "section": "21 CFR § 801.18",
+    "title": "Format of Dates Provided on a Medical Device Label",
+    "text": "All dates provided on a medical device label intended to be brought to the attention of the user (e.g. expiration date, date of manufacture) shall be formatted in standard YYYY-MM-DD form, or for GS1 barcodes, standard year-month-day order (YYMMDD), to prevent clinical misinterpretation across international jurisdictions.",
+    "keywords": ["expiration date", "format", "YYYY-MM-DD", "YYMMDD", "manufacture date"]
+  },
+  {
+    "id": "FDA-21CFR-801.109",
+    "source_name": "US FDA Title 21 CFR Part 801",
+    "section": "21 CFR § 801.109",
+    "title": "Prescription Devices (Rx Only)",
+    "text": "A device which, because of any potentiality for harmful effect, is not safe except under the supervision of a practitioner licensed by law, shall bear the statement 'Caution: Federal law restricts this device to sale by or on the order of a physician' or the symbol 'Rx only'.",
+    "keywords": ["prescription", "Rx only", "caution", "physician order"]
+  }
+]

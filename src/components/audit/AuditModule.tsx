@@ -3,19 +3,21 @@ import { AuditTrailTimeline } from './AuditTrailTimeline';
 import { SubmissionPacket } from './SubmissionPacket';
 import { WhyTraceModal } from './WhyTraceModal';
 import { LabelArtwork, ElectronicSignature } from '../../types';
-import { INITIAL_AUDIT_LOGS } from '../../utils/auditTrail';
+import { AuditEvent, INITIAL_AUDIT_LOGS } from '../../utils/auditTrail';
 import { History, FileCheck, Search } from 'lucide-react';
 import { AbbrTooltip } from '../common/AbbrTooltip';
 
 interface AuditModuleProps {
   artwork: LabelArtwork;
   signatures: ElectronicSignature[];
+  events?: AuditEvent[];
   onOpenWhyTrace: (elementId: string) => void;
 }
 
 export const AuditModule: React.FC<AuditModuleProps> = ({
   artwork,
   signatures,
+  events = INITIAL_AUDIT_LOGS,
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<'timeline' | 'packet'>('timeline');
   const [selectedWhyTraceId, setSelectedWhyTraceId] = useState<string | null>(null);
@@ -38,7 +40,9 @@ export const AuditModule: React.FC<AuditModuleProps> = ({
               <Search className="w-4 h-4 text-blue-700" />
             </div>
             <div>
-              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-mono">Why-Trace™ Directory</h3>
+              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-mono">
+                Why-Trace™ Directory
+              </h3>
               <p className="text-[11px] text-slate-500">Element-to-regulation root cause inspector</p>
             </div>
           </div>
@@ -66,7 +70,8 @@ export const AuditModule: React.FC<AuditModuleProps> = ({
 
           <div className="p-3 rounded bg-slate-50 border border-slate-200 text-[11px] text-slate-600 mt-4 leading-relaxed font-sans">
             <strong className="text-slate-900 block mb-0.5">Audit Guarantee:</strong>
-            Every character, symbol, and barcode on the packaging is mapped back to an approved <AbbrTooltip term="DHF">DHF</AbbrTooltip> / <AbbrTooltip term="DMR">DMR</AbbrTooltip> specification.
+            Every character, symbol, and barcode on the packaging is mapped back to an approved{' '}
+            <AbbrTooltip term="DHF">DHF</AbbrTooltip> / <AbbrTooltip term="DMR">DMR</AbbrTooltip> specification.
           </div>
         </div>
       </div>
@@ -84,7 +89,7 @@ export const AuditModule: React.FC<AuditModuleProps> = ({
             }`}
           >
             <History className="w-3.5 h-3.5 text-blue-700" />
-            <span>Chronological 21 CFR Part 11 Audit Trail</span>
+            <span>Traceable Audit Trail Timeline ({events.length} Events)</span>
           </button>
 
           <button
@@ -102,7 +107,7 @@ export const AuditModule: React.FC<AuditModuleProps> = ({
 
         <div className="flex-1 overflow-hidden">
           {activeSubTab === 'timeline' && (
-            <AuditTrailTimeline events={INITIAL_AUDIT_LOGS} />
+            <AuditTrailTimeline events={events} />
           )}
           {activeSubTab === 'packet' && (
             <SubmissionPacket artwork={artwork} signatures={signatures} />

@@ -1,9 +1,18 @@
-import { ElectronicSignature } from '../types';
+import type { ElectronicSignature } from '../types/index.ts';
 
 export interface AuditEvent {
   id: string;
   timestamp: string;
-  eventType: 'ECN_TRIGGER' | 'GRAPH_TRAVERSAL' | 'AI_SLOT_FILL' | 'VALIDATION_RUN' | 'REDLINE_DIFF' | 'PART_11_SIGNATURE' | 'EXPORT_SUBMISSION';
+  eventType:
+    | 'ECN_TRIGGER'
+    | 'GRAPH_TRAVERSAL'
+    | 'AI_SLOT_FILL'
+    | 'VALIDATION_RUN'
+    | 'REDLINE_DIFF'
+    | 'DEMO_SIGNATURE'
+    | 'EXPORT_SUBMISSION'
+    | 'DOCUMENT_UPLOAD'
+    | 'CORRECTION_APPLIED';
   actor: string;
   role: string;
   action: string;
@@ -11,84 +20,326 @@ export interface AuditEvent {
   previousHash: string;
   currentHash: string;
   systemVerdict?: 'PASS' | 'REVIEW' | 'FAIL';
+  metadata?: Record<string, string | number | boolean>;
+}
+
+export interface AuditChainVerificationResult {
+  isValid: boolean;
+  totalEvents: number;
+  brokenIndex?: number;
+  expectedHash?: string;
+  actualHash?: string;
+  message: string;
 }
 
 /**
- * Lightweight deterministic pseudo SHA-256 for browser runtime demonstration
+ * Standard FIPS PUB 180-4 SHA-256 Pure Implementation.
+ * Ensures genuine 256-bit cryptographic digest calculation across all runtimes
+ * (modern browsers, older engines, web workers, and Node.js testing environments)
+ * without relying on fake 32-bit integer padding.
  */
-export async function calculateSha256(text: string): Promise<string> {
-  if (typeof window !== 'undefined' && window.crypto && window.crypto.subtle) {
-    try {
-      const msgUint8 = new TextEncoder().encode(text);
-      const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgUint8);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-      return hashHex;
-    } catch (e) {
-      // Fallback
+function sha256Pure(message: string): string {
+  function rightRotate(value: number, amount: number): number {
+    return (value >>> amount) | (value << (32 - amount));
+  }
+
+  const maxWord = Math.pow(2, 32);
+  let i = 0;
+  let j = 0;
+  let result = '';
+
+  const words: number[] = [];
+  const asciiBitLength = message.length * 8;
+
+  let hash: number[] = [];
+  const k: number[] = [];
+
+  let primeCounter = 0;
+  const isPrime = (n: number) => {
+    for (let factor = 2, max = Math.sqrt(n); factor <= max; factor++) {
+      if (n % factor === 0) return false;
+    }
+    return true;
+  };
+
+  for (let candidate = 2; primeCounter < 64; candidate++) {
+    if (isPrime(candidate)) {
+      if (primeCounter < 8) {
+        hash[primeCounter] = (Math.pow(candidate, 0.5) * maxWord) | 0;
+      }
+      k[primeCounter] = (Math.pow(candidate, 1 / 3) * maxWord) | 0;
+      primeCounter++;
     }
   }
-  // Deterministic fallback hash
-  let hash = 0;
-  for (let i = 0; i < text.length; i++) {
-    const char = text.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash |= 0;
+
+  // Pre-processing
+  let padded = message + '\x80';
+  while ((padded.length % 64) - 56 !== 0) padded += '\x00';
+
+  for (i = 0; i < padded.length; i++) {
+    j = padded.charCodeAt(i);
+    const wordIndex = i >> 2;
+    words[wordIndex] = (words[wordIndex] || 0) | (j << (((3 - i) % 4) * 8));
   }
-  return Math.abs(hash).toString(16).padStart(64, 'a9b2c3d4e5f6');
+
+  const lenIndexHigh = words.length;
+  words[lenIndexHigh] = (asciiBitLength / maxWord) | 0;
+  words[lenIndexHigh + 1] = asciiBitLength | 0;
+
+  // Process each 512-bit chunk
+  for (j = 0; j < words.length; ) {
+    const w = words.slice(j, (j += 16));
+    const oldHash = [...hash];
+    hash = hash.slice(0, 8);
+
+    for (i = 0; i < 64; i++) {
+      const w15 = w[i - 15] || 0;
+      const w2 = w[i - 2] || 0;
+
+      const s0 = rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3);
+      const s1 = rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10);
+      const ch = (hash[4] & hash[5]) ^ (~hash[4] & hash[6]);
+      const maj = (hash[0] & hash[1]) ^ (hash[0] & hash[2]) ^ (hash[1] & hash[2]);
+      const temp1 =
+        hash[7] +
+        (rightRotate(hash[4], 6) ^ rightRotate(hash[4], 11) ^ rightRotate(hash[4], 25)) +
+        ch +
+        k[i] +
+        (w[i] =
+          i < 16
+            ? w[i] || 0
+            : ((w[i - 16] || 0) + s0 + (w[i - 7] || 0) + s1) | 0);
+      const temp2 =
+        (rightRotate(hash[0], 2) ^ rightRotate(hash[0], 13) ^ rightRotate(hash[0], 22)) +
+        maj;
+
+      hash = [(temp1 + temp2) | 0].concat(hash);
+      hash[4] = (hash[4] + temp1) | 0;
+    }
+
+    for (i = 0; i < 8; i++) {
+      hash[i] = (hash[i] + oldHash[i]) | 0;
+    }
+  }
+
+  for (i = 0; i < 8; i++) {
+    for (j = 3; j >= 0; j--) {
+      const b = (hash[i] >> (j * 8)) & 255;
+      result += (b < 16 ? '0' : '') + b.toString(16);
+    }
+  }
+  return result;
 }
 
-export const INITIAL_AUDIT_LOGS: AuditEvent[] = [
-  {
-    id: 'AUD-001',
-    timestamp: '2026-11-08T08:15:20Z',
-    eventType: 'ECN_TRIGGER',
-    actor: 'Dr. Sarah Jenkins',
-    role: 'VP Quality Assurance',
-    action: 'Initiated Change Notice ECN-2026-S01',
-    details: 'Triggered stability shelf-life extension from 24 to 36 months based on protocol STP-2025-99.',
-    previousHash: '0000000000000000000000000000000000000000000000000000000000000000',
-    currentHash: '3f84d6a1b2c3d4e5f60718293a4b5c6d7e8f90123456789abcdef0123456789a',
-    systemVerdict: 'PASS',
-  },
-  {
-    id: 'AUD-002',
-    timestamp: '2026-11-08T08:18:04Z',
-    eventType: 'GRAPH_TRAVERSAL',
-    actor: 'LabelSense AI Graph Agent',
-    role: 'Automated Regulatory Engine',
-    action: 'Label Digital Thread Traversal Completed',
-    details: 'Traversed 3 SKUs, 3 packaging levels, 4 markets (US, EU, JP, UK), and 21 localized artwork variants.',
-    previousHash: '3f84d6a1b2c3d4e5f60718293a4b5c6d7e8f90123456789abcdef0123456789a',
-    currentHash: '7c8912e4f5061728394a5b6c7d8e9f0123456789abcdef0123456789a1b2c3d4',
-    systemVerdict: 'PASS',
-  },
-  {
-    id: 'AUD-003',
-    timestamp: '2026-11-08T08:24:19Z',
-    eventType: 'AI_SLOT_FILL',
-    actor: 'Marcus Vance',
-    role: 'Lead Packaging Engineer',
-    action: 'Template-Bound Slot-Filling Executed',
-    details: 'Applied locked phrase blocks for ISO 15223-1 symbols and synchronized GS1 AI (17) 281231.',
-    previousHash: '7c8912e4f5061728394a5b6c7d8e9f0123456789abcdef0123456789a1b2c3d4',
-    currentHash: 'a1b2c3d4e5f60718293a4b5c6d7e8f90123456789abcdef0123456789a7c8912',
-    systemVerdict: 'PASS',
-  },
-  {
-    id: 'AUD-004',
-    timestamp: '2026-11-08T08:30:45Z',
-    eventType: 'VALIDATION_RUN',
-    actor: 'LabelSense 3-Layer Engine',
-    role: 'Deterministic Verification System',
-    action: 'Multi-Layer Validation Pass Complete',
-    details: 'Layer 1 GS1 Modulo-10 verified (PASS). Layer 2 Computer Vision diff 99.8% (PASS). Layer 3 Back-translation 0.99 (PASS).',
-    previousHash: 'a1b2c3d4e5f60718293a4b5c6d7e8f90123456789abcdef0123456789a7c8912',
-    currentHash: 'd4e5f60718293a4b5c6d7e8f90123456789abcdef0123456789a7c89123f84d6',
-    systemVerdict: 'PASS',
+/**
+ * Calculates genuine SHA-256 hash using the Web Crypto API if available,
+ * falling back to the standard FIPS 180-4 pure JS implementation.
+ * Guaranteed to return a valid 64-character hexadecimal SHA-256 digest.
+ */
+export async function calculateSha256(text: string): Promise<string> {
+  const globalCrypto = typeof window !== 'undefined' ? window.crypto : (globalThis as any).crypto;
+  if (globalCrypto && globalCrypto.subtle) {
+    try {
+      const msgUint8 = new TextEncoder().encode(text);
+      const hashBuffer = await globalCrypto.subtle.digest('SHA-256', msgUint8);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    } catch {
+      // Fall through to pure implementation
+    }
   }
-];
+  return sha256Pure(text);
+}
 
+/**
+ * Synchronous genuine SHA-256 calculator using the verified FIPS 180-4 implementation.
+ */
+export function calculateSha256Sync(text: string): string {
+  return sha256Pure(text);
+}
+
+/**
+ * Generates the canonical hash payload for an audit event block.
+ */
+export function formatAuditPayload(event: Omit<AuditEvent, 'currentHash'>): string {
+  return `${event.previousHash}|${event.id}|${event.timestamp}|${event.eventType}|${event.actor}|${event.role}|${event.action}|${event.details}|${event.systemVerdict || 'NONE'}`;
+}
+
+/**
+ * Creates a new, cryptographically linked Audit Event chained to the previous record.
+ */
+export async function createChainedAuditEvent(params: {
+  id: string;
+  eventType: AuditEvent['eventType'];
+  actor: string;
+  role: string;
+  action: string;
+  details: string;
+  previousHash: string;
+  systemVerdict?: 'PASS' | 'REVIEW' | 'FAIL';
+  metadata?: Record<string, string | number | boolean>;
+}): Promise<AuditEvent> {
+  const timestamp = new Date().toISOString();
+  const rawPayload = `${params.previousHash}|${params.id}|${timestamp}|${params.eventType}|${params.actor}|${params.role}|${params.action}|${params.details}|${params.systemVerdict || 'NONE'}`;
+  const currentHash = await calculateSha256(rawPayload);
+
+  return {
+    id: params.id,
+    timestamp,
+    eventType: params.eventType,
+    actor: params.actor,
+    role: params.role,
+    action: params.action,
+    details: params.details,
+    previousHash: params.previousHash,
+    currentHash,
+    systemVerdict: params.systemVerdict,
+    metadata: params.metadata,
+  };
+}
+
+/**
+ * Verifies the integrity of an audit event chain from genesis block to tip.
+ * Detects any data mutation, payload tampering, or hash mismatch.
+ */
+export async function verifyAuditChain(events: AuditEvent[]): Promise<AuditChainVerificationResult> {
+  if (!events || events.length === 0) {
+    return {
+      isValid: true,
+      totalEvents: 0,
+      message: 'Audit log is empty; chain is trivially valid.',
+    };
+  }
+
+  for (let i = 0; i < events.length; i++) {
+    const event = events[i];
+
+    // Check link to previous event
+    if (i > 0) {
+      const prevEvent = events[i - 1];
+      if (event.previousHash !== prevEvent.currentHash) {
+        return {
+          isValid: false,
+          totalEvents: events.length,
+          brokenIndex: i,
+          expectedHash: prevEvent.currentHash,
+          actualHash: event.previousHash,
+          message: `Chain continuity broken at index ${i} (${event.id}): previousHash does not match previous block currentHash.`,
+        };
+      }
+    }
+
+    // Verify cryptographic hash integrity of the block payload
+    const rawPayload = `${event.previousHash}|${event.id}|${event.timestamp}|${event.eventType}|${event.actor}|${event.role}|${event.action}|${event.details}|${event.systemVerdict || 'NONE'}`;
+    const recomputedHash = await calculateSha256(rawPayload);
+
+    if (recomputedHash !== event.currentHash) {
+      return {
+        isValid: false,
+        totalEvents: events.length,
+        brokenIndex: i,
+        expectedHash: recomputedHash,
+        actualHash: event.currentHash,
+        message: `Tamper detected at event ${event.id}: Block payload was modified after hash generation.`,
+      };
+    }
+  }
+
+  return {
+    isValid: true,
+    totalEvents: events.length,
+    message: `All ${events.length} audit records cryptographically verified with zero tamper detected.`,
+  };
+}
+
+/**
+ * Seed baseline audit log events with verified SHA-256 hashes.
+ */
+function buildInitialEvent(
+  id: string,
+  timestamp: string,
+  eventType: AuditEvent['eventType'],
+  actor: string,
+  role: string,
+  action: string,
+  details: string,
+  previousHash: string,
+  systemVerdict: 'PASS' | 'REVIEW' | 'FAIL'
+): AuditEvent {
+  const rawPayload = `${previousHash}|${id}|${timestamp}|${eventType}|${actor}|${role}|${action}|${details}|${systemVerdict}`;
+  const currentHash = sha256Pure(rawPayload);
+  return {
+    id,
+    timestamp,
+    eventType,
+    actor,
+    role,
+    action,
+    details,
+    previousHash,
+    currentHash,
+    systemVerdict,
+  };
+}
+
+const GENESIS_HASH = '0000000000000000000000000000000000000000000000000000000000000000';
+
+const EVT_1 = buildInitialEvent(
+  'AUD-001',
+  '2026-11-08T08:15:20Z',
+  'ECN_TRIGGER',
+  'Dr. Sarah Jenkins',
+  'VP Quality Assurance',
+  'Initiated Change Notice ECN-2026-S01',
+  'Triggered stability shelf-life extension from 24 to 36 months based on protocol STP-2025-99.',
+  GENESIS_HASH,
+  'PASS'
+);
+
+const EVT_2 = buildInitialEvent(
+  'AUD-002',
+  '2026-11-08T08:18:04Z',
+  'GRAPH_TRAVERSAL',
+  'LabelSense AI Graph Agent',
+  'Automated Regulatory Engine',
+  'Label Digital Thread Traversal Completed',
+  'Traversed 3 SKUs, 3 packaging levels, 4 markets (US, EU, JP, UK), and 21 localized artwork variants.',
+  EVT_1.currentHash,
+  'PASS'
+);
+
+const EVT_3 = buildInitialEvent(
+  'AUD-003',
+  '2026-11-08T08:24:19Z',
+  'AI_SLOT_FILL',
+  'Marcus Vance',
+  'Lead Packaging Engineer',
+  'Template-Bound Slot-Filling Executed',
+  'Applied locked phrase blocks for ISO 15223-1 symbols and synchronized GS1 AI (17) 281231.',
+  EVT_2.currentHash,
+  'PASS'
+);
+
+const EVT_4 = buildInitialEvent(
+  'AUD-004',
+  '2026-11-08T08:30:45Z',
+  'VALIDATION_RUN',
+  'LabelSense 3-Layer Engine',
+  'Deterministic Verification System',
+  'Multi-Layer Validation Pass Complete',
+  'Layer 1 GS1 Modulo-10 verified (PASS). Layer 2 Computer Vision diff 99.8% (PASS). Layer 3 Back-translation 0.99 (PASS).',
+  EVT_3.currentHash,
+  'PASS'
+);
+
+export const INITIAL_AUDIT_LOGS: AuditEvent[] = [EVT_1, EVT_2, EVT_3, EVT_4];
+
+/**
+ * Initial sample electronic signatures.
+ * IMPORTANT: In this client demonstration, signatures are demonstration electronic signatures
+ * created for UI verification. Production 21 CFR Part 11 electronic signatures require a qualified
+ * authentication authority, LDAP/Active Directory SSO credential verification, and server-side PKI signing.
+ */
 export const INITIAL_SIGNATURES: ElectronicSignature[] = [
   {
     id: 'SIG-2026-001',
@@ -97,8 +348,8 @@ export const INITIAL_SIGNATURES: ElectronicSignature[] = [
     userRole: 'QA_LEAD',
     meaning: 'I have reviewed and approve this label revision as compliant with EU MDR 2017/745 and FDA 21 CFR 801.',
     timestamp: '2026-11-08T08:45:12Z',
-    sha256Hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+    sha256Hash: sha256Pure('Dr. Sarah Jenkins|QA_LEAD|2026-11-08T08:45:12Z|USR-8821|ECO-2026-1042'),
     ipAddress: '192.168.10.42 (Internal GxP VPN)',
-    part11Compliant: true,
-  }
+    part11Compliant: false, // Marked as demonstration signature
+  },
 ];
