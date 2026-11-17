@@ -8,7 +8,8 @@
 [![Deterministic Math](https://img.shields.io/badge/GS1%20Modulo--10-Deterministic-blue)](server/app/services/gs1_validator.py)
 [![Cryptographic Audit](https://img.shields.io/badge/Audit%20Chain-FIPS%20180--4%20SHA--256-indigo)](server/app/services/audit_service.py)
 [![AI Architecture](https://img.shields.io/badge/AI%20Layer-Provider--Agnostic%20Assistive-teal)](server/app/ai/)
-[![License](https://img.shields.io/badge/License-MIT-slate)](LICENSE)
+[![Security Policy](https://img.shields.io/badge/Security-Policy_Enforced-emerald.svg)](SECURITY.md)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 **Participant:** Gowtham Sai Garnepudi (Vel Tech Rangarajan Dr. Sagunthala R&D Institute of Science and Technology)  
 **Competition:** CodeQuest 2026 – Round 3 National Final Build & Showcase  
@@ -30,7 +31,33 @@ Packaging and labeling faults account for over **33% of all medical device recal
 
 ---
 
-## 2. System Architecture
+## 2. Visual Interface & Product Gallery
+
+LabelSense features a calm, high-density clinical MedTech SaaS user interface engineered for regulatory precision and audit efficiency:
+
+| 01. Honest Clinical Landing Page | 02. Document Upload & Vision AI Processor |
+| :---: | :---: |
+| ![Landing Page](docs/images/01-landing-page.png) | ![Document Upload Processor](docs/images/02-upload-document-processor.png) |
+| *Clear value proposition, 4-step workflow, and regulatory disclaimers.* | *Drag-and-drop PDF/image ingestion with Vision AI extraction & Modulo-10 guardrails.* |
+
+| 03. Verification Results & GAMP 5 CSA Dossier | 04. Assistive AI Finding Explainer & In-Context Chat |
+| :---: | :---: |
+| ![Verification Results](docs/images/03-results-verdict-dossier.png) | ![AI Assistant Panel](docs/images/04-ai-assistant-finding-explainer.png) |
+| *Rule-driven PASS/REVIEW/CRITICAL verdicts, confidence gauges, and evidence bounds.* | *Plain-language summaries, clinical risk context, suggested fixes, and Accept/Reject audit.* |
+
+| 05. Statutory Clause Search (SQLite FTS5 RAG) | 06. Neural Back-Translation & Decimal Shift Audit |
+| :---: | :---: |
+| ![Clause Search RAG](docs/images/05-regulatory-clause-rag-search.png) | ![Neural Back-Translation](docs/images/06-neural-back-translation-audit.png) |
+| *BM25 full-text search across curated EU MDR, FDA 21 CFR, and ISO clauses.* | *Semantic localization shift detection paired with deterministic numeric/unit checks.* |
+
+| 07. ECN Change Impact & Dependency Graph | 08. Cryptographic FIPS 180-4 SHA-256 Audit Trail |
+| :---: | :---: |
+| ![ECN Impact Graph](docs/images/07-ecn-change-impact-graph.png) | ![Audit Trail Verification](docs/images/08-sha256-audit-trail-verification.png) |
+| *Visual ripple effect and blast radius analysis on affected packaging variants.* | *Sequential block integrity chain with one-click cryptographic tamper detection.* |
+
+---
+
+## 3. System Architecture
 
 LabelSense is structured as a decoupled, full-stack MedTech application:
 
@@ -83,7 +110,7 @@ LabelSense is structured as a decoupled, full-stack MedTech application:
 
 ---
 
-## 3. Assistive AI Layer & Provider-Agnostic Architecture
+## 4. Assistive AI Layer & Provider-Agnostic Architecture
 
 The AI layer in LabelSense is strictly **assistive**: deterministic mathematical algorithms always hold final authority over compliance verdicts.
 
@@ -110,7 +137,7 @@ The AI layer in LabelSense is strictly **assistive**: deterministic mathematical
 
 ---
 
-## 4. Clinical Evaluation Benchmark (`python -m app.eval`)
+## 5. Clinical Evaluation Benchmark (`python -m app.eval`)
 
 LabelSense includes a built-in evaluation harness in `server/app/eval/` with **18 curated ground-truth medical device packaging labels** spanning Class I, II, and III implants across cardiovascular, orthopedic, neurology, and surgical devices.
 
@@ -162,7 +189,7 @@ Total Benchmark Execution Time: 0.003s (0.2ms/label)
 
 ---
 
-## 5. Automated Verification & Test Coverage
+## 6. Automated Verification & Test Coverage
 
 The platform maintains **65 automated unit and integration tests** passing with zero failures:
 
@@ -229,7 +256,7 @@ server/tests/test_validate_gtin_non_numeric                              PASSED
 
 ---
 
-## 6. Quickstart: One-Command Execution
+## 7. Quickstart: One-Command Execution
 
 ### Prerequisites
 - **Node.js**: v18+ or v20+
@@ -259,7 +286,7 @@ chmod +x start.sh
 
 ---
 
-## 7. Demo Scenarios & Sample Labels for Judges
+## 8. Demo Scenarios & Sample Labels for Judges
 
 Authentic, vector-rendered sample label PDFs and PNGs are provided in `docs/sample_labels/` and pre-staged in the web UI for instant testing:
 
@@ -271,7 +298,7 @@ Authentic, vector-rendered sample label PDFs and PNGs are provided in `docs/samp
 
 ---
 
-## 8. Authenticated Roles & Personas
+## 9. Authenticated Roles & Personas
 
 Switch between simulated clinical personas in the top-right header:
 
@@ -281,6 +308,21 @@ Switch between simulated clinical personas in the top-right header:
 
 ---
 
-## 9. License
+## 10. Security & Regulatory Compliance Policy
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+LabelSense enforces comprehensive GAMP 5 CSA and FDA 21 CFR Part 11 defense-in-depth security controls:
+- **Strict Rule Supremacy**: Deterministic GS1 Modulo-10 and schema checks override all AI model predictions. AI models can only escalate risk tiers, never downgrade or clear defects.
+- **Prompt Injection Defense**: Scanned label OCR text is wrapped in `<UNTRUSTED_LABEL_CONTENT>` delimiters with strict system rejection rules for embedded instructions.
+- **FIPS 180-4 Cryptographic Audit Trail**: All system and reviewer actions are chained sequentially via SHA-256 block hashing with one-click tamper detection (`GET /api/audit/verify`).
+- **Data Privacy & Non-Training**: Uploaded label artwork and regulatory submissions are processed in isolated sessions and never transmitted to third parties for model training.
+
+For vulnerability disclosure, responsible reporting, and full security protocols, see [SECURITY.md](SECURITY.md).
+
+---
+
+## 11. License & Regulatory Disclaimer
+
+This project is licensed under the **Apache License, Version 2.0**. See the [LICENSE](LICENSE) file for the full license terms.
+
+> **MEDICAL DEVICE & REGULATORY DISCLAIMER:**  
+> LabelSense is an assistive software tool engineered to support Regulatory Affairs and Quality Assurance teams. It is **not** an approved medical device, diagnostic system, or autonomous certification entity under US FDA 21 CFR 820, EU MDR 2017/745, or ISO 13485. Any label verification verdicts, check digit computations, translations, or statutory citations must be reviewed, verified, and signed off by qualified human professionals prior to commercial release or clinical distribution.
