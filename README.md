@@ -8,8 +8,6 @@
 [![Deterministic Math](https://img.shields.io/badge/GS1%20Modulo--10-Deterministic-blue)](server/app/services/gs1_validator.py)
 [![Cryptographic Audit](https://img.shields.io/badge/Audit%20Chain-FIPS%20180--4%20SHA--256-indigo)](server/app/services/audit_service.py)
 [![AI Architecture](https://img.shields.io/badge/AI%20Layer-Provider--Agnostic%20Assistive-teal)](server/app/ai/)
-[![Security Policy](https://img.shields.io/badge/Security-Policy_Enforced-emerald.svg)](SECURITY.md)
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 **Participant:** Gowtham Sai Garnepudi (Vel Tech Rangarajan Dr. Sagunthala R&D Institute of Science and Technology)  
 **Competition:** CodeQuest 2026 – Round 3 National Final Build & Showcase  
@@ -305,24 +303,3 @@ Switch between simulated clinical personas in the top-right header:
 - **Dr. Aris Thorne (QA Lead)**: Authorized to execute validation pipelines, sign electronic signoffs, and approve reviewer decisions.
 - **Elena Rostova (Reviewer)**: Regulatory affairs specialist focused on clause traceability, visual redline analysis, and dossier inspection.
 - **Marcus Vance (Admin)**: QMS Director with governance rights over audit logs, system parameters, and rule extraction.
-
----
-
-## 10. Security & Regulatory Compliance Policy
-
-LabelSense enforces comprehensive GAMP 5 CSA and FDA 21 CFR Part 11 defense-in-depth security controls:
-- **Strict Rule Supremacy**: Deterministic GS1 Modulo-10 and schema checks override all AI model predictions. AI models can only escalate risk tiers, never downgrade or clear defects.
-- **Prompt Injection Defense**: Scanned label OCR text is wrapped in `<UNTRUSTED_LABEL_CONTENT>` delimiters with strict system rejection rules for embedded instructions.
-- **FIPS 180-4 Cryptographic Audit Trail**: All system and reviewer actions are chained sequentially via SHA-256 block hashing with one-click tamper detection (`GET /api/audit/verify`).
-- **Data Privacy & Non-Training**: Uploaded label artwork and regulatory submissions are processed in isolated sessions and never transmitted to third parties for model training.
-
-For vulnerability disclosure, responsible reporting, and full security protocols, see [SECURITY.md](SECURITY.md).
-
----
-
-## 11. License & Regulatory Disclaimer
-
-This project is licensed under the **Apache License, Version 2.0**. See the [LICENSE](LICENSE) file for the full license terms.
-
-> **MEDICAL DEVICE & REGULATORY DISCLAIMER:**  
-> LabelSense is an assistive software tool engineered to support Regulatory Affairs and Quality Assurance teams. It is **not** an approved medical device, diagnostic system, or autonomous certification entity under US FDA 21 CFR 820, EU MDR 2017/745, or ISO 13485. Any label verification verdicts, check digit computations, translations, or statutory citations must be reviewed, verified, and signed off by qualified human professionals prior to commercial release or clinical distribution.
