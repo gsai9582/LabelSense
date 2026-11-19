@@ -11,6 +11,8 @@ node_modules
 dist
 dist-test
 dist-ssr
+repo_snapshot.txt
+*.zip
 *.local
 .env
 .env.*
